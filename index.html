@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulação</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#f0f4f8;--s1:#ffffff;--s2:#f5f7fa;--s3:#edf1f5;
+  --cy:#0066cc;--cy2:#004fa3;--cydim:rgba(0,102,204,.08);--cyglow:rgba(0,102,204,.04);
+  --gr:#16a34a;--grdim:rgba(22,163,74,.07);
+  --am:#b45309;--amdim:rgba(180,83,9,.07);
+  --re:#dc2626;
+  --tx:#0f172a;--tx2:#1e293b;--mu:#64748b;--mu2:#cbd5e1;
+  --bd:rgba(0,102,204,.12);--bd2:rgba(0,102,204,.25);
+  --gl:rgba(0,102,204,.04);--pt:rgba(0,102,204,.3);
+  --f:'Inter',sans-serif;--m:'JetBrains Mono',monospace;
+}
+body{font-family:var(--f);background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;font-size:16px;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--gl) 1px,transparent 1px),linear-gradient(90deg,var(--gl) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0}
+.wrap{max-width:660px;margin:0 auto;padding:0 1.25rem 5rem;position:relative;z-index:1}
+.page{display:none}.page.active{display:block;animation:up .35s cubic-bezier(.22,1,.36,1)}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:1.3rem 0 1.7rem;border-bottom:1px solid var(--bd);margin-bottom:1.7rem}
+.brand{display:flex;align-items:center;gap:10px}
+.bicon{width:32px;height:32px;border:1px solid var(--bd2);border-radius:7px;display:flex;align-items:center;justify-content:center;background:var(--cydim);flex-shrink:0}
+.bicon svg{width:14px;height:14px;stroke:var(--cy);fill:none;stroke-width:2.2}
+.bname{font-size:.66rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--cy)}
+.bver{font-size:.72rem;color:var(--mu);font-family:var(--f);margin-top:1px}
+.tr{display:flex;align-items:center;gap:.5rem}
+.online{display:flex;align-items:center;gap:4px;font-size:.72rem;font-family:var(--f);color:var(--mu)}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--gr);box-shadow:0 0 5px rgba(22,163,74,.4)}
+.tbtn-nav{display:flex;align-items:center;gap:4px;padding:5px 10px;border:1px solid var(--bd);border-radius:6px;background:transparent;color:var(--mu);font-family:var(--f);font-size:.6rem;cursor:pointer;transition:all .18s}
+.tbtn-nav:hover{border-color:var(--bd2);color:var(--cy)}
+.tbtn-nav svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2}
+.bbk{display:inline-flex;align-items:center;gap:5px;padding:.33rem .75rem;background:transparent;border:1px solid var(--bd);border-radius:5px;color:var(--mu);font-family:var(--f);font-size:.72rem;cursor:pointer;transition:all .18s}
+.bbk:hover{border-color:var(--bd2);color:var(--tx)}
+.bbk svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2}
+
+.stag{font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--cy2);font-family:var(--f);display:flex;align-items:center;gap:7px;margin-bottom:.35rem}
+.stag::before{content:'';width:12px;height:1px;background:var(--cy2)}
+.sh1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;color:var(--tx);line-height:1.2}
+.ssub{font-size:.76rem;color:var(--mu);margin-top:.28rem}
+.shead{margin-bottom:1.3rem}
+
+.panel{background:white;border:1px solid #e5e7eb;border-radius:12px;padding:1.5rem;margin-bottom:.75rem;position:relative;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.panel::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--pt),transparent)}
+.ptit{font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mu);font-family:var(--f);display:flex;align-items:center;gap:8px;margin-bottom:1.1rem}
+.ptit::after{content:'';flex:1;height:1px;background:var(--bd)}
+
+.trow{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem}
+.tipo-btn{display:flex;flex-direction:column;align-items:center;gap:8px;padding:1rem .5rem;border:1.5px solid #e5e7eb;border-radius:10px;background:white;color:#6b7280;cursor:pointer;font-family:var(--f);font-size:.875rem;font-weight:500;transition:all .2s}
+.tipo-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8}
+.tipo-btn:hover{border-color:#93c5fd;color:var(--tx)}
+.tipo-btn.on{border-color:#3b82f6;color:#2563eb;background:#eff6ff;border-width:2px}
+
+.fg{display:flex;flex-direction:column;gap:5px}
+.fl{font-size:.875rem;font-weight:600;letter-spacing:0;text-transform:none;color:var(--tx2);font-family:var(--f)}
+.fi{background:white;border:1px solid #d1d5db;border-radius:8px;padding:.7rem 1rem;font-size:.95rem;font-family:var(--f);color:var(--tx);width:100%;transition:all .18s}
+.fi:focus{outline:none;border-color:var(--cy);background:white;box-shadow:0 0 0 3px rgba(0,102,204,.12)}
+.fi::placeholder{color:#9ca3af;font-size:.92rem}
+.fh{font-size:.78rem;color:var(--mu);font-family:var(--f)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:.5rem}
+.g1{margin-bottom:.75rem}
+.dsep{border-top:1px solid #f3f4f6;padding-top:1rem;margin:.25rem 0 .75rem}
+.dlbl{font-size:.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--am);font-family:var(--f);display:flex;align-items:center;gap:7px;margin-bottom:.75rem}
+.dlbl::after{content:'';flex:1;height:1px;background:var(--amdim)}
+
+.brun{width:100%;padding:.85rem;background:#2563eb;border:none;border-radius:10px;color:white;font-family:var(--f);font-size:1rem;font-weight:600;letter-spacing:0;cursor:pointer;transition:all .2s;margin-top:.35rem;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 2px 8px rgba(37,99,235,.3)}
+.brun:hover{background:#1d4ed8;box-shadow:0 4px 14px rgba(37,99,235,.4);transform:translateY(-1px)}
+.brun:active{transform:scale(.99)}
+.brun svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
+
+.arow{display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-bottom:.55rem}
+.abt{display:flex;align-items:center;justify-content:center;gap:6px;padding:.65rem;border-radius:8px;font-family:var(--f);font-size:.76rem;font-weight:600;cursor:pointer;transition:all .2s;border:1px solid}
+.abt svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
+.abt.sv{border-color:var(--gr);color:var(--gr);background:transparent}
+.abt.sv:hover{background:var(--grdim)}
+.abt.pd{border-color:var(--am);color:var(--am);background:transparent}
+.abt.pd:hover{background:var(--amdim)}
+.abt:disabled{opacity:.4;cursor:not-allowed}
+
+.rtop{padding:1.2rem 0 .9rem}
+.rid{font-family:var(--f);font-size:.72rem;color:var(--mu);letter-spacing:.04em;margin-bottom:.2rem}
+.rtit{font-size:1.25rem;font-weight:700;color:var(--tx)}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;margin-top:.3rem;border:1px solid var(--bd2);border-radius:4px;font-size:.7rem;font-family:var(--f);text-transform:uppercase;color:var(--cy);background:var(--cydim)}
+.chip::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--cy)}
+
+.rg2{display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-bottom:.45rem}
+.rg3{display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem;margin-bottom:.45rem}
+.rb{background:var(--s1);border:1px solid var(--bd);border-radius:9px;padding:.78rem .88rem;position:relative;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.rb.rc{border-color:var(--bd2);background:var(--cydim)}
+.rb.rg{border-color:rgba(22,163,74,.2);background:var(--grdim)}
+.rb.ra{border-color:rgba(180,83,9,.2);background:var(--amdim)}
+.rb.rm{border-color:var(--cy);background:var(--cydim);box-shadow:0 2px 8px var(--cydim)}
+.rb.rm::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--cy),transparent)}
+.rl{font-size:.7rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mu);font-family:var(--f);margin-bottom:3px}
+.rv{font-family:var(--f);font-size:1rem;font-weight:500;color:var(--tx)}
+.rv.cy{color:var(--cy)}.rv.gr{color:var(--gr)}.rv.am{color:var(--am)}
+.rv.big{font-size:1.4rem;font-weight:700;color:var(--cy)}
+
+.lrow{display:flex;align-items:center;justify-content:space-between;padding:.48rem 0;border-bottom:1px solid var(--bd);font-size:.78rem}
+.lrow:last-child{border-bottom:none;padding-bottom:0}
+.ll{display:flex;align-items:center;gap:7px;color:var(--mu)}
+.pip{width:5px;height:5px;border-radius:50%}
+.pc{background:var(--cy)}.pg{background:var(--gr)}
+.lv{font-family:var(--f);font-size:.88rem;font-weight:600;color:var(--gr)}
+
+.notice{display:flex;gap:8px;align-items:flex-start;padding:.65rem .9rem;border-radius:7px;margin-bottom:.45rem;font-size:.8rem;font-family:var(--f);line-height:1.5}
+.notice.w{background:var(--amdim);border:1px solid rgba(180,83,9,.2);color:var(--am)}
+.notice.i{background:var(--cyglow);border:1px solid var(--bd);color:var(--cy2)}
+.notice svg{width:12px;height:12px;flex-shrink:0;margin-top:2px;stroke:currentColor;fill:none;stroke-width:2}
+.notice p{margin-bottom:2px}.notice p:last-child{margin:0}
+.ncta{color:var(--cy);font-weight:600}
+
+.ibl{background:var(--s1);border:1px solid var(--bd);border-radius:9px;padding:.9rem 1.05rem;margin-bottom:.5rem;box-shadow:0 1px 3px rgba(0,0,0,.03)}
+.ibt{font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mu);font-family:var(--f);display:flex;align-items:center;gap:7px;margin-bottom:.6rem}
+.ibt::after{content:'';flex:1;height:1px;background:var(--bd)}
+.ig3{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem}
+.ii strong{display:block;font-size:.78rem;font-weight:600;color:var(--cy2);margin-bottom:3px;font-family:var(--f)}
+.ii p{font-size:.8rem;color:var(--mu);line-height:1.5}
+
+/* MODAL */
+.ov{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:100;display:none;align-items:center;justify-content:center;padding:1.25rem;backdrop-filter:blur(4px)}
+.ov.open{display:flex}
+.modal{background:white;border:1px solid var(--bd2);border-radius:14px;padding:1.4rem;width:100%;max-width:440px;position:relative;box-shadow:0 8px 32px rgba(0,0,0,.12)}
+.modal::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--cy),transparent);border-radius:14px 14px 0 0}
+.mtt{font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--cy2);font-family:var(--f);display:flex;align-items:center;gap:7px;margin-bottom:.9rem}
+.mtt::after{content:'';flex:1;height:1px;background:var(--bd)}
+.mh{font-size:1rem;font-weight:700;color:var(--tx);margin-bottom:.25rem}
+.ms{font-size:.85rem;color:var(--mu);margin-bottom:1.1rem;font-family:var(--f)}
+.mbt{display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-top:.9rem}
+.mca{padding:.6rem;border:1px solid var(--bd);border-radius:7px;background:transparent;color:var(--mu);font-family:var(--f);font-size:.85rem;cursor:pointer;transition:all .18s}
+.mca:hover{border-color:var(--bd2);color:var(--tx)}
+.mco{padding:.6rem;border:none;border-radius:7px;background:var(--cy);color:white;font-family:var(--f);font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s;box-shadow:0 2px 6px rgba(0,102,204,.3)}
+.mco:hover{background:var(--cy2)}
+
+/* FOLDER SELECT */
+.folder-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem}
+.folder-sel{flex:1;background:var(--s2);border:1px solid var(--mu2);border-radius:6px;padding:.5rem .75rem;font-size:.82rem;font-family:var(--f);color:var(--tx);cursor:pointer;transition:all .18s}
+.folder-sel:focus{outline:none;border-color:var(--cy);box-shadow:0 0 0 3px var(--cydim)}
+.btn-new-folder{display:flex;align-items:center;gap:4px;padding:.5rem .8rem;border:1px solid var(--bd2);border-radius:6px;background:transparent;color:var(--cy);font-family:var(--f);font-size:.78rem;cursor:pointer;white-space:nowrap;transition:all .18s}
+.btn-new-folder:hover{background:var(--cydim)}
+.btn-new-folder svg{width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2.5}
+
+/* HISTORY */
+.hist-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;gap:.5rem;flex-wrap:wrap}
+.folder-tabs{display:flex;gap:.35rem;flex-wrap:wrap}
+.ftab{padding:5px 14px;border:1px solid var(--bd);border-radius:20px;background:transparent;font-family:var(--f);font-size:.78rem;color:var(--mu);cursor:pointer;transition:all .18s;white-space:nowrap}
+.ftab:hover{border-color:var(--bd2);color:var(--tx)}
+.ftab.on{background:var(--cy);border-color:var(--cy);color:white}
+.ftab-del{margin-left:4px;opacity:.6;cursor:pointer}
+.ftab-del:hover{opacity:1}
+
+.hmonth{margin-bottom:1.3rem}
+.mlbl{font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--cy2);font-family:var(--f);display:flex;align-items:center;gap:8px;margin-bottom:.6rem}
+.mlbl::after{content:'';flex:1;height:1px;background:var(--bd)}
+.hcard{background:var(--s1);border:1px solid var(--bd);border-radius:9px;padding:.78rem .95rem;margin-bottom:.38rem;display:flex;align-items:flex-start;justify-content:space-between;gap:.7rem;transition:all .18s;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.hcard:hover{border-color:var(--bd2);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.hid{font-family:var(--f);font-size:.72rem;color:var(--mu);margin-bottom:3px}
+.hcli{font-size:.82rem;font-weight:700;color:var(--tx);margin-bottom:1px}
+.htipo{font-size:.7rem;font-weight:500;color:var(--cy2);margin-bottom:2px}
+.hmeta{font-size:.8rem;color:var(--mu);font-family:var(--f)}
+.hright{text-align:right;flex-shrink:0}
+.hval{font-family:var(--f);font-size:1rem;font-weight:600;color:var(--cy)}
+.hparc{font-size:.78rem;color:var(--mu);font-family:var(--f);margin-top:2px}
+.hactions{display:flex;gap:.3rem;flex-shrink:0;flex-direction:column;align-items:flex-end}
+.hbtn{background:transparent;border:none;cursor:pointer;padding:3px;color:var(--mu);transition:color .18s;display:flex;align-items:center}
+.hbtn:hover{color:var(--cy)}
+.hbtn.del:hover{color:var(--re)}
+.hbtn svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2}
+.hempty{text-align:center;padding:2.5rem 1rem;font-family:var(--f);font-size:.85rem;color:var(--mu);border:1px dashed var(--bd);border-radius:9px;line-height:1.7}
+.hbadge{display:inline-flex;padding:2px 7px;border-radius:4px;font-size:.72rem;font-family:var(--f);font-weight:600;background:var(--cydim);color:var(--cy);margin-left:.4rem}
+
+/* PDF VIEWER MODAL */
+.pdf-ov{position:fixed;inset:0;background:rgba(15,23,42,.7);z-index:200;display:none;flex-direction:column;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(6px)}
+.pdf-ov.open{display:flex}
+.pdf-box{background:white;border-radius:12px;width:100%;max-width:680px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.2)}
+.pdf-header{display:flex;align-items:center;justify-content:space-between;padding:.8rem 1rem;border-bottom:1px solid var(--bd);flex-shrink:0}
+.pdf-title{font-size:.88rem;font-weight:600;font-family:var(--f);color:var(--tx)}
+.pdf-close{background:transparent;border:none;cursor:pointer;color:var(--mu);padding:4px;display:flex;align-items:center;transition:color .18s}
+.pdf-close:hover{color:var(--re)}
+.pdf-close svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.pdf-content{flex:1;overflow-y:auto;padding:1.25rem;background:var(--bg)}
+.pdf-dl-btn{display:flex;align-items:center;gap:6px;padding:.55rem 1.1rem;background:var(--am);color:white;border:none;border-radius:6px;font-family:var(--f);font-size:.76rem;font-weight:600;cursor:pointer;transition:all .2s}
+.pdf-dl-btn:hover{background:#92400e}
+.pdf-dl-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
+
+/* pdf preview card styles */
+.pdf-preview{background:white;border-radius:8px;padding:2rem;font-family:var(--f);color:var(--tx);max-width:580px;margin:0 auto;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+.pdf-pre-header{background:#0f172a;border-radius:8px 8px 0 0;margin:-2rem -2rem 1.5rem;padding:1.1rem 1.4rem;display:flex;justify-content:space-between;align-items:flex-start}
+.pdf-pre-h1{color:white;font-size:1.1rem;font-weight:700;letter-spacing:.04em}
+.pdf-pre-sub{color:rgba(180,200,220,.8);font-size:.78rem;font-family:var(--f);margin-top:2px}
+.pdf-pre-id{color:rgba(150,180,200,.7);font-size:.72rem;font-family:var(--f);text-align:right}
+.pdf-tipo-tag{display:inline-block;background:var(--cy);color:white;font-size:.72rem;font-weight:600;padding:3px 12px;border-radius:4px;margin-bottom:1rem;font-family:var(--f);letter-spacing:.04em;text-transform:uppercase}
+.pdf-id-block{background:#f8fafc;border-radius:8px;padding:.9rem 1rem;margin-bottom:1rem;border:1px solid #e2e8f0}
+.pdf-id-name{font-size:1.05rem;font-weight:700;color:var(--tx);margin-bottom:3px}
+.pdf-id-meta{font-size:.82rem;color:var(--mu);font-family:var(--f)}
+.pdf-sec-title{font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mu);font-family:var(--f);margin-bottom:.55rem;padding-bottom:.35rem;border-bottom:1px solid #e2e8f0}
+.pdf-grid2{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.9rem}
+.pdf-grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:.9rem}
+.pdf-box{background:#f8fafc;border-radius:6px;padding:.65rem .8rem;border:1px solid #e2e8f0}
+.pdf-box.hl{border-color:var(--cy);background:var(--cydim)}
+.pdf-box.hg{border-color:rgba(22,163,74,.3);background:var(--grdim)}
+.pdf-box-label{font-size:.68rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mu);font-family:var(--f);margin-bottom:3px}
+.pdf-box-val{font-family:var(--f);font-size:1rem;font-weight:600;color:var(--tx)}
+.pdf-box-val.cy{color:var(--cy)}.pdf-box-val.gr{color:var(--gr)}.pdf-box-val.big{font-size:1.3rem;color:var(--cy)}
+.pdf-disclaimer{background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:.65rem .8rem;font-size:.78rem;font-family:var(--f);color:var(--am);line-height:1.5;margin-top:.9rem}
+
+@media(max-width:500px){.g2{grid-template-columns:1fr}.rg3{grid-template-columns:1fr 1fr}.ig3{grid-template-columns:1fr}.arow{grid-template-columns:1fr}}
+
+/* SYNC / CLOUD */
+.sync-bar{display:flex;align-items:center;gap:.5rem;padding:.65rem 1rem;background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;margin-bottom:.75rem;flex-wrap:wrap}
+.sync-status{font-size:.78rem;font-family:var(--f);color:#0369a1;display:flex;align-items:center;gap:5px;flex:1}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0}
+.sync-dot.off{background:#94a3b8}
+.sync-dot.syncing{background:#f59e0b;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.btn-sync{display:flex;align-items:center;gap:4px;padding:5px 12px;border:1px solid #0ea5e9;border-radius:6px;background:transparent;color:#0ea5e9;font-family:var(--f);font-size:.76rem;font-weight:500;cursor:pointer;transition:all .18s;white-space:nowrap}
+.btn-sync:hover{background:#e0f2fe}
+.btn-sync svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
+.btn-export{display:flex;align-items:center;gap:4px;padding:5px 12px;border:1px solid #64748b;border-radius:6px;background:transparent;color:#64748b;font-family:var(--f);font-size:.76rem;font-weight:500;cursor:pointer;transition:all .18s;white-space:nowrap}
+.btn-export:hover{background:#f1f5f9;color:#334155}
+.btn-export svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2}
+
+/* SETUP MODAL */
+.setup-modal{background:white;border:1px solid #e2e8f0;border-radius:14px;padding:1.5rem;width:100%;max-width:460px;box-shadow:0 8px 32px rgba(0,0,0,.12)}
+.setup-section{background:#f8fafc;border-radius:8px;padding:1rem;margin-bottom:.75rem;border:1px solid #e2e8f0}
+.setup-section-title{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#64748b;font-family:var(--f);margin-bottom:.6rem}
+.setup-info{font-size:.78rem;color:#64748b;line-height:1.6;margin-bottom:.75rem}
+.setup-info a{color:#2563eb}
+.setup-info code{background:#f1f5f9;padding:1px 5px;border-radius:3px;font-size:.76rem}
+.btn-setup-confirm{width:100%;padding:.65rem;border:none;border-radius:8px;background:#2563eb;color:white;font-family:var(--f);font-size:.88rem;font-weight:600;cursor:pointer;transition:all .2s;margin-top:.75rem}
+.btn-setup-confirm:hover{background:#1d4ed8}
+.or-divider{display:flex;align-items:center;gap:.75rem;margin:.75rem 0;font-size:.72rem;color:#94a3b8;font-family:var(--f)}
+.or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:#e2e8f0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- MAIN PAGE -->
+<div id="pMain" class="page active">
+  <div class="topbar">
+    <div class="brand">
+      <div class="bicon"><svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
+      <div><div class="bname">Simulação</div><div class="bver">v4.0 · pt-BR</div></div>
+    </div>
+    <div class="tr">
+      <button class="tbtn-nav" id="btnHist"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>histórico</button>
+      <div class="online"><div class="dot"></div>ativo</div>
+    </div>
+  </div>
+  <div class="shead">
+    <div class="stag">módulo de simulação</div>
+    <div class="sh1">Configure sua simulação</div>
+    <div class="ssub">Preencha os parâmetros abaixo para gerar a simulação</div>
+  </div>
+
+
+  <!-- SYNC BAR -->
+  <div class="sync-bar" id="syncBar">
+    <div class="sync-status"><div class="sync-dot off" id="syncDot"></div><span id="syncMsg">Dados salvos localmente · Configure a nuvem para sincronizar</span></div>
+    <button class="btn-export" id="btnExport"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar</button>
+    <button class="btn-export" id="btnImport"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Importar</button>
+    <button class="btn-sync" id="btnSetupCloud"><svg viewBox="0 0 24 24"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>Nuvem</button>
+  </div>
+  <input type="file" id="importInput" accept=".json" style="display:none">
+  <!-- IDENTIFICAÇÃO OPCIONAL -->
+  <div class="panel">
+    <div class="ptit">identificação <span style="font-size:.5rem;font-weight:400;color:var(--mu);letter-spacing:.04em;text-transform:lowercase;font-family:var(--f);margin-left:4px">— opcional</span></div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Nome do Cliente</div><input type="text" id="fCli" class="fi" placeholder="ex: João Silva"></div>
+      <div class="fg"><div class="fl">Responsável</div><input type="text" id="fRes" class="fi" placeholder="ex: Ana Costa"></div>
+    </div>
+    <div class="g1 fg" style="margin-bottom:0"><div class="fl">Data da Simulação</div><input type="date" id="fDat" class="fi"></div>
+  </div>
+
+  <!-- TIPO -->
+  <div class="panel">
+    <div class="ptit">tipo de produto</div>
+    <div class="trow">
+      <button class="tipo-btn on" data-tipo="imovel"><svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Imóvel</button>
+      <button class="tipo-btn" data-tipo="automovel"><svg viewBox="0 0 24 24"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><path d="M9 17h6"/><circle cx="17" cy="17" r="2"/></svg>Automóvel</button>
+      <button class="tipo-btn" data-tipo="servicos"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>Serviços</button>
+    </div>
+  </div>
+
+  <!-- PARÂMETROS -->
+  <div class="panel">
+    <div class="ptit">parâmetros principais</div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Crédito Bruto (R$)</div><input type="number" id="fCB" class="fi" placeholder="50000"></div>
+      <div class="fg"><div class="fl">Nº de Parcelas</div><input type="number" id="fNP" class="fi" placeholder="60"></div>
+      <div class="fg"><div class="fl">Taxa de Adm. (%)</div><input type="number" id="fTA" class="fi" step="0.1" placeholder="15"></div>
+      <div class="fg"><div class="fl">Fundo de Reserva (%)</div><input type="number" id="fFR" class="fi" step="0.1" placeholder="0"></div>
+    </div>
+    <div class="dsep">
+      <div class="dlbl">opcionais</div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Parcelas (R$)</div><input type="number" id="fPR" class="fi" step="0.01" placeholder="0"><span class="fh">↳ substitui cálculo auto</span></div>
+        <div class="fg"><div class="fl">1ª Parcela (R$)</div><input type="number" id="fPP" class="fi" step="0.01" placeholder="0"><span class="fh">↳ se diferente das demais</span></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">Valor da Entrada (R$)</div><input type="number" id="fVE" class="fi" step="0.01" placeholder="0"></div>
+        <div class="fg">
+          <div class="fl">Saldo Devedor (R$)</div>
+          <input type="number" id="fSD" class="fi" step="0.01" placeholder="opcional">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LANCES -->
+  <div class="panel">
+    <div class="ptit">lances</div>
+    <div class="g2" style="margin-bottom:0">
+      <div class="fg"><div class="fl">Lance Embutido (R$)</div><input type="number" id="fLE" class="fi" placeholder="0"></div>
+      <div class="fg"><div class="fl">Recursos Próprios (R$)</div><input type="number" id="fLR" class="fi" placeholder="0"></div>
+    </div>
+  </div>
+
+  <button class="brun" id="btnRun">
+    <svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+    Executar Simulação
+  </button>
+  <div style="height:.55rem"></div>
+  <div class="ibl"><div class="ibt">como funciona o lance</div><div class="ig3">
+    <div class="ii"><strong>Lance Embutido</strong><p>Descontado do crédito bruto, reduz o crédito líquido.</p></div>
+    <div class="ii"><strong>Recursos Próprios</strong><p>Pago com recurso externo, sem afetar o crédito.</p></div>
+    <div class="ii"><strong>Contemplação</strong><p>Lance maior aumenta as chances de contemplação antecipada.</p></div>
+  </div></div>
+  <div class="notice w"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div><p>Valores estimados, sujeitos à aprovação da administradora.</p><p>Reajuste anual conforme contrato (INCC / IPCA). Contemplação não garantida.</p></div></div>
+  <div class="notice i"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><div><p>Essa simulação não gera compromisso.</p><p class="ncta">Posso te mostrar a melhor estratégia de contemplação para o seu perfil.</p></div></div>
+</div>
+
+<!-- RESULTS PAGE -->
+<div id="pRes" class="page">
+  <div class="topbar">
+    <div class="brand">
+      <div class="bicon"><svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>
+      <div><div class="bname">Simulação</div><div class="bver">resultado</div></div>
+    </div>
+    <div class="tr">
+      <button class="bbk" id="btnBack"><svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>nova simulação</button>
+    </div>
+  </div>
+  <div class="rtop">
+    <div class="rid" id="rId">SIM-000000</div>
+    <div class="rtit">Resultado da Simulação</div>
+    <div class="chip" id="rTipo"></div>
+  </div>
+
+  <!-- CLIENT BOX -->
+  <div id="rCliBox" style="display:none;margin-bottom:.5rem">
+    <div class="rb rc">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
+        <div><div class="rl">Cliente</div><div class="rv" id="rCliNome" style="font-size:1.05rem;font-weight:700;color:var(--tx)"></div></div>
+        <div id="rResBox" style="display:none"><div class="rl">Responsável</div><div class="rv cy" id="rResNome" style="font-size:.88rem"></div></div>
+        <div id="rDatBox" style="display:none"><div class="rl">Data</div><div class="rv" id="rDatVal" style="font-size:.88rem;font-family:var(--f)"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rg2">
+    <div class="rb"><div class="rl">Crédito Bruto</div><div class="rv" id="rCB"></div></div>
+    <div class="rb rg"><div class="rl">Crédito Líquido</div><div class="rv gr" id="rCL"></div></div>
+  </div>
+  <div class="rg3">
+    <div class="rb rc"><div class="rl">Taxa de Adm.</div><div class="rv cy" id="rTA"></div></div>
+    <div class="rb rc"><div class="rl">Fundo Reserva</div><div class="rv cy" id="rFR"></div></div>
+    <div class="rb rc"><div class="rl">Parcelas</div><div class="rv cy" id="rNP"></div></div>
+  </div>
+  <div id="bPU" style="margin-bottom:.45rem"><div class="rb rm"><div class="rl">Valor das Parcelas</div><div class="rv big" id="rVP"></div></div></div>
+  <div id="bPD" class="rg2" style="display:none;margin-bottom:.45rem">
+    <div class="rb rc"><div class="rl">Primeira Parcela</div><div class="rv cy" id="rPP"></div></div>
+    <div class="rb rm"><div class="rl">Demais Parcelas</div><div class="rv big" id="rDP"></div></div>
+  </div>
+  <div id="rLances" class="panel" style="display:none">
+    <div class="ptit">lances</div>
+    <div id="lES" style="display:none"><div class="lrow"><div class="ll"><div class="pip pc"></div>Lance Embutido</div><div class="lv" id="rLE"></div></div></div>
+    <div id="lRS" style="display:none"><div class="lrow"><div class="ll"><div class="pip pg"></div>Recursos Próprios</div><div class="lv" id="rLR"></div></div></div>
+  </div>
+  <div id="rEntrada" style="display:none">
+    <div class="rg2">
+      <div class="rb"><div class="rl">Valor da Entrada</div><div class="rv" id="rVE"></div></div>
+      <div class="rb ra" id="rSDBox">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+          <div class="rl" style="margin-bottom:0">Saldo Devedor</div>
+          <button id="btnToggleSD" onclick="toggleSaldoDevedor()" style="background:transparent;border:none;cursor:pointer;font-size:.68rem;font-family:var(--f);color:var(--am);text-decoration:underline;padding:0">ocultar</button>
+        </div>
+        <div class="rv am" id="rSD"></div>
+      </div>
+    </div>
+  </div>
+  <div id="rSDHidden" style="display:none;margin-bottom:.45rem">
+    <button onclick="toggleSaldoDevedor()" style="background:transparent;border:1px dashed #d1d5db;border-radius:7px;width:100%;padding:.55rem;font-size:.78rem;font-family:var(--f);color:var(--mu);cursor:pointer;transition:all .18s" onmouseover="this.style.borderColor='var(--am)';this.style.color='var(--am)'" onmouseout="this.style.borderColor='#d1d5db';this.style.color='var(--mu)'">
+      + mostrar saldo devedor
+    </button>
+  </div>
+  <div class="arow">
+    <button class="abt sv" id="btnSave"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar Simulação</button>
+    <button class="abt pd" id="btnPDF"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Download PDF</button>
+  </div>
+  <div class="notice w"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div><p>Valores estimados, sujeitos à aprovação da administradora. Reajuste anual conforme contrato (INCC / IPCA).</p></div></div>
+  <div class="notice i"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><div><p>Essa simulação não gera compromisso.</p><p class="ncta">Posso te mostrar a melhor estratégia de contemplação para o seu perfil.</p></div></div>
+</div>
+
+<!-- HISTORY PAGE -->
+<div id="pHist" class="page">
+  <div class="topbar">
+    <div class="brand">
+      <div class="bicon"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg></div>
+      <div><div class="bname">Histórico</div><div class="bver">simulações por pasta</div></div>
+    </div>
+    <div class="tr">
+      <button class="bbk" id="btnHistBack"><svg viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>voltar</button>
+    </div>
+  </div>
+  <div class="shead">
+    <div class="stag">registro</div>
+    <div class="sh1">Histórico <span class="hbadge" id="hCount">0</span></div>
+    <div class="ssub">Simulações organizadas por pasta e mês</div>
+  </div>
+  <div class="hist-toolbar">
+    <div class="folder-tabs" id="folderTabs"></div>
+  </div>
+  <div id="hList"></div>
+</div>
+
+
+<!-- SETUP CLOUD MODAL -->
+<div class="ov" id="ovCloud">
+  <div class="setup-modal">
+    <div style="font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#0369a1;font-family:var(--f);display:flex;align-items:center;gap:8px;margin-bottom:1rem">
+      <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:#0369a1;fill:none;stroke-width:2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+      Sincronização em Nuvem
+      <span style="flex:1;height:1px;background:#bae6fd;display:block"></span>
+    </div>
+    <div class="mh" style="margin-bottom:.3rem">Banco de Dados Compartilhado</div>
+    <div style="font-size:.82rem;color:#64748b;margin-bottom:1.1rem;line-height:1.55">
+      Qualquer pessoa com o link vai ver e salvar no mesmo banco de dados. Configure com o <strong>Supabase</strong> (gratuito).
+    </div>
+
+    <div id="cloudSetupStep1">
+      <div class="setup-section">
+        <div class="setup-section-title">Passo 1 — Criar projeto gratuito</div>
+        <div class="setup-info">
+          1. Acesse <a href="https://supabase.com" target="_blank">supabase.com</a> e crie uma conta gratuita<br>
+          2. Crie um novo projeto (guarde a senha)<br>
+          3. Vá em <code>Project Settings → API</code><br>
+          4. Copie a <strong>Project URL</strong> e a chave <strong>anon public</strong>
+        </div>
+      </div>
+      <div class="setup-section">
+        <div class="setup-section-title">Passo 2 — Criar a tabela</div>
+        <div class="setup-info">
+          No Supabase, vá em <code>SQL Editor</code> e execute:<br><br>
+          <code style="display:block;background:#f1f5f9;padding:.6rem .75rem;border-radius:6px;font-size:.72rem;line-height:1.7;color:#334155">
+            create table simulacoes (<br>
+            &nbsp;&nbsp;id text primary key,<br>
+            &nbsp;&nbsp;dados jsonb not null,<br>
+            &nbsp;&nbsp;created_at timestamptz default now()<br>
+            );<br>
+            alter table simulacoes enable row level security;<br>
+            create policy "public" on simulacoes for all using (true) with check (true);
+          </code>
+        </div>
+      </div>
+      <div class="setup-section">
+        <div class="setup-section-title">Passo 3 — Cole suas credenciais</div>
+        <div class="fg g1">
+          <div class="fl">Project URL</div>
+          <input type="text" id="sbUrl" class="fi" placeholder="https://xxxx.supabase.co">
+        </div>
+        <div class="fg" style="margin-bottom:0">
+          <div class="fl">Anon Key</div>
+          <input type="text" id="sbKey" class="fi" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+        </div>
+      </div>
+
+      <div class="or-divider">ou</div>
+
+      <div class="setup-section">
+        <div class="setup-section-title">Exportar / Importar arquivo JSON</div>
+        <div class="setup-info">Solução offline: salve em arquivo e importe em outro dispositivo.</div>
+        <div style="display:flex;gap:.5rem">
+          <button class="btn-export" style="flex:1;justify-content:center" id="btnExport2"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar JSON</button>
+          <button class="btn-export" style="flex:1;justify-content:center" id="btnImport2"><svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>Importar JSON</button>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:.5rem;margin-top:.75rem">
+        <button class="mca" style="flex:1;font-family:var(--f);font-size:.85rem" id="btnCloudCancel">Cancelar</button>
+        <button class="btn-setup-confirm" style="margin-top:0;flex:2" id="btnCloudConnect">
+          <svg viewBox="0 0 24 24" style="width:14px;height:14px;stroke:white;fill:none;stroke-width:2;margin-right:5px"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+          Conectar ao Supabase
+        </button>
+      </div>
+      <div id="cloudStatus" style="font-size:.76rem;text-align:center;margin-top:.65rem;min-height:1.2rem;font-family:var(--f);color:#64748b"></div>
+    </div>
+
+    <div id="cloudSetupConnected" style="display:none">
+      <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:1rem;text-align:center;margin-bottom:1rem">
+        <div style="font-size:1.2rem;margin-bottom:.3rem">✓</div>
+        <div style="font-size:.88rem;font-weight:600;color:#16a34a;font-family:var(--f)">Conectado ao Supabase!</div>
+        <div style="font-size:.76rem;color:#15803d;margin-top:.25rem;font-family:var(--f)" id="connectedUrl"></div>
+      </div>
+      <div style="font-size:.82rem;color:#64748b;text-align:center;margin-bottom:1rem;font-family:var(--f)">
+        Todos que abrirem este arquivo com estas credenciais vão compartilhar o mesmo banco de dados.
+      </div>
+      <div style="display:flex;gap:.5rem">
+        <button class="mca" style="flex:1;font-family:var(--f);font-size:.85rem" id="btnCloudDisconnect">Desconectar</button>
+        <button class="btn-setup-confirm" style="margin-top:0;flex:1;background:#16a34a" id="btnCloudDone">Fechar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<!-- MODAL SALVAR -->
+<div class="ov" id="ov">
+  <div class="modal">
+    <div class="mtt">salvar simulação</div>
+    <div class="mh">Identificação e Pasta</div>
+    <div class="ms">Preencha os dados e escolha onde salvar</div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Nome do Cliente</div><input type="text" id="mCli" class="fi" placeholder="ex: João Silva"></div>
+      <div class="fg"><div class="fl">Responsável</div><input type="text" id="mRes" class="fi" placeholder="ex: Ana Costa"></div>
+    </div>
+    <div class="g2">
+      <div class="fg"><div class="fl">Administradora</div><input type="text" id="mAdm" class="fi" placeholder="ex: Porto Seguro"></div>
+      <div class="fg"><div class="fl">Tabela</div><input type="text" id="mTab" class="fi" placeholder="ex: TAB-2024-A"></div>
+    </div>
+    <div class="g1 fg"><div class="fl">Data da Simulação</div><input type="date" id="mDat" class="fi"></div>
+    <div class="fg g1">
+      <div class="fl">Pasta</div>
+      <div class="folder-row">
+        <select id="mFolder" class="folder-sel"><option value="geral">Geral</option></select>
+        <button class="btn-new-folder" id="btnNewFolder"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>nova pasta</button>
+      </div>
+    </div>
+    <div class="mbt">
+      <button class="mca" id="btnMCanc">Cancelar</button>
+      <button class="mco" id="btnMConf">Salvar agora</button>
+    </div>
+  </div>
+</div>
+
+<!-- PDF VIEWER -->
+<div class="pdf-ov" id="pdfOv">
+  <div class="pdf-box">
+    <div class="pdf-header">
+      <span class="pdf-title" id="pdfTitle">Visualização da Simulação</span>
+      <div style="display:flex;align-items:center;gap:.5rem">
+        <button class="pdf-dl-btn" id="pdfDlBtn"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Baixar PDF</button>
+        <button class="pdf-close" id="pdfClose"><svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+    </div>
+    <div class="pdf-content" id="pdfContent"></div>
+  </div>
+</div>
+
+<script>
+var tipoSel='imovel', sim=null, viewSim=null;
+var MONTHS=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+var SKEY='csim_v4', FKEY='csim_folders_v4';
+var SB_URL_KEY='csim_sb_url', SB_KEY_KEY='csim_sb_key';
+
+var sbUrl = localStorage.getItem(SB_URL_KEY)||'';
+var sbKey = localStorage.getItem(SB_KEY_KEY)||'';
+var cloudConnected = !!(sbUrl && sbKey);
+
+function fmt(v){return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v);}
+function fdate(s){if(!s)return'—';var p=s.split('-');return p[2]+'/'+p[1]+'/'+p[0];}
+function tlbl(t){return{imovel:'Imóvel',automovel:'Automóvel',servicos:'Serviços'}[t]||t;}
+function lsLoad(){try{return JSON.parse(localStorage.getItem(SKEY)||'[]');}catch(e){return[];}}
+function lsSave(a){
+  localStorage.setItem(SKEY,JSON.stringify(a));
+}
+function fLoad(){try{var f=JSON.parse(localStorage.getItem(FKEY)||'[]');if(!f.length)f=['Geral'];return f;}catch(e){return['Geral'];}}
+function fSave(a){
+  localStorage.setItem(FKEY,JSON.stringify(a));
+}
+
+/* ── SUPABASE CLOUD SYNC ── */
+function setSyncStatus(connected, msg, syncing){
+  cloudConnected = connected;
+  var dot = document.getElementById('syncDot');
+  var msgEl = document.getElementById('syncMsg');
+  if(!dot||!msgEl) return;
+  dot.className = 'sync-dot'+(syncing?' syncing':connected?'':' off');
+  msgEl.textContent = msg;
+}
+
+function sbHeaders(){
+  return {'Content-Type':'application/json','apikey':sbKey,'Authorization':'Bearer '+sbKey,'Prefer':'resolution=merge-duplicates'};
+}
+
+async function sbSave(sim_obj){
+  if(!sbUrl||!sbKey) return false;
+  try{
+    var r = await fetch(sbUrl+'/rest/v1/simulacoes', {
+      method:'POST',
+      headers:sbHeaders(),
+      body: JSON.stringify({id: sim_obj.id, dados: sim_obj})
+    });
+    return r.ok || r.status===409;
+  }catch(e){ return false; }
+}
+
+async function sbDelete(id){
+  if(!sbUrl||!sbKey) return false;
+  try{
+    var r = await fetch(sbUrl+'/rest/v1/simulacoes?id=eq.'+id, {
+      method:'DELETE', headers:sbHeaders()
+    });
+    return r.ok;
+  }catch(e){ return false; }
+}
+
+async function sbLoadAll(){
+  if(!sbUrl||!sbKey) return null;
+  try{
+    var r = await fetch(sbUrl+'/rest/v1/simulacoes?select=dados&order=created_at.desc', {
+      headers:{'apikey':sbKey,'Authorization':'Bearer '+sbKey}
+    });
+    if(!r.ok) return null;
+    var rows = await r.json();
+    return rows.map(function(row){ return row.dados; });
+  }catch(e){ return null; }
+}
+
+async function sbTest(url, key){
+  try{
+    var r = await fetch(url+'/rest/v1/simulacoes?select=id&limit=1', {
+      headers:{'apikey':key,'Authorization':'Bearer '+key}
+    });
+    return r.ok;
+  }catch(e){ return false; }
+}
+
+async function connectSupabase(url, key){
+  var status = document.getElementById('cloudStatus');
+  status.style.color='#64748b';
+  status.textContent='Testando conexão...';
+  var ok = await sbTest(url.trim(), key.trim());
+  if(ok){
+    sbUrl = url.trim();
+    sbKey = key.trim();
+    localStorage.setItem(SB_URL_KEY, sbUrl);
+    localStorage.setItem(SB_KEY_KEY, sbKey);
+    cloudConnected = true;
+    setSyncStatus(true,'Supabase conectado · dados em nuvem compartilhada',false);
+    // Load from cloud and merge
+    setSyncStatus(true,'Carregando simulações da nuvem...',true);
+    var remote = await sbLoadAll();
+    if(remote!==null){
+      var local = lsLoad();
+      var localIds = local.map(function(s){return s.id;});
+      var merged = local.concat(remote.filter(function(s){return!localIds.includes(s.id);}));
+      localStorage.setItem(SKEY, JSON.stringify(merged));
+      setSyncStatus(true,'Supabase · '+merged.length+' simulações carregadas',false);
+    }
+    return true;
+  } else {
+    status.style.color='#dc2626';
+    status.textContent='Erro: verifique a URL e a chave. Confirme que a tabela foi criada corretamente.';
+    return false;
+  }
+}
+
+/* ── EXPORT / IMPORT ── */
+function exportarDados(){
+  var payload = {
+    app:'SimulacaoApp',
+    version:'4.0',
+    exportedAt: new Date().toISOString(),
+    code: cloudCode||'sem-codigo',
+    sims: lsLoad(),
+    folders: fLoad()
+  };
+  var blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href=url;
+  var date = new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
+  a.download='simulacoes_'+date+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importarDados(file){
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      var data = JSON.parse(e.target.result);
+      if(!data.sims||!Array.isArray(data.sims)){
+        alert('Arquivo inválido. Verifique se é um arquivo exportado por este sistema.');
+        return;
+      }
+      var existing = lsLoad();
+      var existingIds = existing.map(function(s){return s.id;});
+      var newSims = data.sims.filter(function(s){return!existingIds.includes(s.id);});
+      var merged = existing.concat(newSims);
+      localStorage.setItem(SKEY, JSON.stringify(merged));
+      if(data.folders){
+        var existFolders = fLoad();
+        var merged_folders = existFolders.concat(data.folders.filter(function(f){return!existFolders.includes(f);}));
+        localStorage.setItem(FKEY, JSON.stringify(merged_folders));
+      }
+      if(data.code) localStorage.setItem(CKEY, data.code);
+      alert('Importado com sucesso! '+newSims.length+' novas simulações adicionadas.');
+      if(document.getElementById('pHist').classList.contains('active')) renderHist();
+      setSyncStatus(false, 'Importado · '+merged.length+' simulações no total', false);
+    }catch(err){
+      alert('Erro ao importar arquivo. Verifique se o formato é válido.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function ir(id){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(id==='pHist')renderHist();
+}
+
+function calcular(){
+  var cb=parseFloat(document.getElementById('fCB').value)||0;
+  var np=parseInt(document.getElementById('fNP').value)||0;
+  var ta=parseFloat(document.getElementById('fTA').value)||0;
+  var fr=parseFloat(document.getElementById('fFR').value)||0;
+  var pr=parseFloat(document.getElementById('fPR').value)||0;
+  var pp=parseFloat(document.getElementById('fPP').value)||0;
+  var ve=parseFloat(document.getElementById('fVE').value)||0;
+  var fSDval=parseFloat(document.getElementById('fSD').value)||0;
+  var le=parseFloat(document.getElementById('fLE').value)||0;
+  var lr=parseFloat(document.getElementById('fLR').value)||0;
+  var cli=document.getElementById('fCli').value.trim();
+  var res=document.getElementById('fRes').value.trim();
+  var dat=document.getElementById('fDat').value;
+  if(!cb||!np){alert('Preencha Crédito Bruto e Número de Parcelas.');return;}
+  var cl=cb-le;
+  var vp=pr>0?pr:(cb*(1+(ta/100)+(fr/100)))/np;
+  var id='SIM-'+(Math.floor(Math.random()*900000)+100000);
+  var sdVal=fSDval>0?fSDval:0;
+  sim={id:id,tipo:tipoSel,cli:cli,res:res,adm:'',tab:'',dat:dat,folder:'Geral',cb:cb,cl:cl,np:np,ta:ta,fr:fr,vp:vp,pp:pp,ve:ve,sd:sdVal,le:le,lr:lr,savedAt:null};
+  mostrar(sim);
+  document.getElementById('rId').textContent=id;
+  var sb=document.getElementById('btnSave');
+  sb.innerHTML='<svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>Salvar Simulação';
+  sb.disabled=false;sb.style.opacity='1';
+  ir('pRes');
+}
+
+function mostrar(d){
+  document.getElementById('rTipo').textContent=tlbl(d.tipo);
+  document.getElementById('rCB').textContent=fmt(d.cb);
+  document.getElementById('rCL').textContent=fmt(d.cl);
+  document.getElementById('rTA').textContent=d.ta.toFixed(1)+'%';
+  document.getElementById('rFR').textContent=d.fr.toFixed(1)+'%';
+  document.getElementById('rNP').textContent=d.np+'x';
+  var cbox=document.getElementById('rCliBox');
+  if(d.cli||d.res||d.dat){
+    cbox.style.display='block';
+    document.getElementById('rCliNome').textContent=d.cli||'—';
+    var rb=document.getElementById('rResBox'),db=document.getElementById('rDatBox');
+    if(d.res){rb.style.display='block';document.getElementById('rResNome').textContent=d.res;}else rb.style.display='none';
+    if(d.dat){db.style.display='block';document.getElementById('rDatVal').textContent=fdate(d.dat);}else db.style.display='none';
+  }else cbox.style.display='none';
+  var bu=document.getElementById('bPU'),bd=document.getElementById('bPD');
+  if(d.pp>0){bd.style.display='grid';bu.style.display='none';document.getElementById('rPP').textContent=fmt(d.pp);document.getElementById('rDP').textContent=fmt(d.vp);}
+  else{bd.style.display='none';bu.style.display='block';document.getElementById('rVP').textContent=fmt(d.vp);}
+  document.getElementById('rLances').style.display=(d.le>0||d.lr>0)?'block':'none';
+  var es=document.getElementById('lES'),rs=document.getElementById('lRS');
+  if(d.le>0){es.style.display='block';document.getElementById('rLE').textContent=fmt(d.le);}else es.style.display='none';
+  if(d.lr>0){rs.style.display='block';document.getElementById('rLR').textContent=fmt(d.lr);}else rs.style.display='none';
+  var en=document.getElementById('rEntrada');
+  if(d.ve>0||d.sd>0){en.style.display='block';if(d.ve>0)document.getElementById('rVE').textContent=fmt(d.ve);else document.getElementById('rVE').textContent='—';document.getElementById('rSD').textContent=d.sd>0?fmt(d.sd):'—';}else en.style.display='none';
+}
+
+/* MODAL */
+var curFolder='Geral';
+function populateFolderSelect(){
+  var sel=document.getElementById('mFolder');
+  var folders=fLoad();
+  var cur=sel.value||curFolder;
+  sel.innerHTML=folders.map(function(f){return'<option value="'+f+'"'+(f===cur?' selected':'')+'>'+f+'</option>';}).join('');
+}
+function abrirModal(){
+  if(!sim)return;
+  document.getElementById('mCli').value=sim.cli||'';
+  document.getElementById('mRes').value=sim.res||'';
+  document.getElementById('mAdm').value=sim.adm||'';
+  document.getElementById('mTab').value=sim.tab||'';
+  document.getElementById('mDat').value=sim.dat||'';
+  populateFolderSelect();
+  document.getElementById('ov').classList.add('open');
+}
+function fecharModal(){document.getElementById('ov').classList.remove('open');}
+function confirmarSalvar(){
+  if(!sim)return;
+  sim.cli=document.getElementById('mCli').value.trim();
+  sim.res=document.getElementById('mRes').value.trim();
+  sim.adm=document.getElementById('mAdm').value.trim();
+  sim.tab=document.getElementById('mTab').value.trim();
+  sim.dat=document.getElementById('mDat').value;
+  sim.folder=document.getElementById('mFolder').value||'Geral';
+  var arr=lsLoad();
+  if(!arr.find(function(s){return s.id===sim.id;})){
+    sim.savedAt=new Date().toISOString();
+    arr.push(JSON.parse(JSON.stringify(sim)));
+    lsSave(arr);
+  }
+  fecharModal();
+  var sbBtn=document.getElementById('btnSave');
+  sbBtn.innerHTML='<svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2"><polyline points="20 6 9 17 4 12"/></svg>Salvo!';
+  sbBtn.disabled=true;sbBtn.style.opacity='.5';
+  // push to Supabase if connected
+  if(cloudConnected){
+    var saved = arr.find(function(s){return s.id===sim.id;}) || sim;
+    sbSave(saved).then(function(ok){
+      if(ok) setSyncStatus(true,'Supabase · salvo na nuvem',false);
+      else setSyncStatus(true,'Salvo local · erro ao sincronizar nuvem',false);
+    });
+  }
+}
+function criarNovaPasta(){
+  var nome=prompt('Nome da nova pasta:');
+  if(!nome||!nome.trim())return;
+  nome=nome.trim();
+  var folders=fLoad();
+  if(!folders.includes(nome)){folders.push(nome);fSave(folders);}
+  populateFolderSelect();
+  document.getElementById('mFolder').value=nome;
+}
+
+/* HISTORY */
+var activeFolder='todas';
+function deleteSim(id){
+  if(!confirm('Excluir esta simulação?'))return;
+  lsSave(lsLoad().filter(function(s){return s.id!==id;}));
+  if(cloudConnected) sbDelete(id);
+  renderHist();
+}
+function deleteFolder(name){
+  if(name==='Geral'){alert('A pasta Geral não pode ser excluída.');return;}
+  if(!confirm('Excluir pasta "'+name+'" e mover simulações para Geral?'))return;
+  var arr=lsLoad().map(function(s){if(s.folder===name)s.folder='Geral';return s;});
+  lsSave(arr);
+  var folders=fLoad().filter(function(f){return f!==name;});
+  fSave(folders);
+  activeFolder='todas';
+  renderHist();
+}
+
+function renderHist(){
+  var sims=lsLoad();
+  document.getElementById('hCount').textContent=sims.length;
+  var folders=fLoad();
+  // folder tabs
+  var tabs=document.getElementById('folderTabs');
+  tabs.innerHTML='<button class="ftab'+(activeFolder==='todas'?' on':'')+'" onclick="setFolder(\'todas\')">Todas</button>'
+    +folders.map(function(f){
+      var cnt=sims.filter(function(s){return s.folder===f;}).length;
+      return '<button class="ftab'+(activeFolder===f?' on':'')+'" onclick="setFolder(\''+f+'\')">'
+        +f+' <span style="opacity:.7">('+cnt+')</span>'
+        +(f!=='Geral'?'<span class="ftab-del" onclick="event.stopPropagation();deleteFolder(\''+f+'\')">×</span>':'')
+        +'</button>';
+    }).join('');
+
+  var list=document.getElementById('hList');
+  var filtered=activeFolder==='todas'?sims:sims.filter(function(s){return s.folder===activeFolder;});
+  if(!filtered.length){list.innerHTML='<div class="hempty">Nenhuma simulação'+(activeFolder!=='todas'?' nesta pasta':'')+' ainda.<br>Execute e clique em "Salvar Simulação".</div>';return;}
+  // group by month
+  var groups={};
+  filtered.forEach(function(s){
+    var ref=s.dat||s.savedAt;
+    var dt=new Date(ref.length===10?ref+'T12:00:00':ref);
+    var y=dt.getFullYear(),mo=dt.getMonth();
+    var k=y+'-'+(mo+1<10?'0':'')+(mo+1);
+    var lbl=MONTHS[mo]+' '+y;
+    if(!groups[k])groups[k]={lbl:lbl,items:[]};
+    groups[k].items.push(s);
+  });
+  var keys=Object.keys(groups).sort(function(a,b){return b.localeCompare(a);});
+  list.innerHTML=keys.map(function(k){
+    var g=groups[k];
+    var cards=g.items.sort(function(a,b){return new Date(b.savedAt)-new Date(a.savedAt);}).map(function(s){
+      return '<div class="hcard">'
+        +'<div style="flex:1;min-width:0">'
+        +'<div class="hid">'+s.id+(s.folder&&s.folder!=='Geral'?' · <span style="color:var(--cy);font-weight:600">'+s.folder+'</span>':'')+'</div>'
+        +(s.cli?'<div class="hcli">'+s.cli+(s.res?' <span style="color:var(--mu);font-size:.72rem;font-weight:400">· '+s.res+'</span>':'')+'</div>':'')
+        +'<div class="htipo">'+tlbl(s.tipo)+(s.adm?' · '+s.adm:'')+(s.tab?' / '+s.tab:'')+'</div>'
+        +'<div class="hmeta">'+(s.dat?fdate(s.dat):'sem data')+' · '+s.np+'x</div>'
+        +'</div>'
+        +'<div class="hright"><div class="hval">'+fmt(s.cb)+'</div><div class="hparc">'+fmt(s.vp)+'/mês</div></div>'
+        +'<div class="hactions">'
+        +'<button class="hbtn" onclick="visualizarPDF(\''+s.id+'\')" title="Ver PDF"><svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>'
+        +'<button class="hbtn del" onclick="deleteSim(\''+s.id+'\')" title="Excluir"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>'
+        +'</div>'
+        +'</div>';
+    }).join('');
+    return '<div class="hmonth"><div class="mlbl">'+g.lbl+'<span class="hbadge">'+g.items.length+'</span></div>'+cards+'</div>';
+  }).join('');
+}
+function setFolder(f){activeFolder=f;renderHist();}
+
+/* PDF VIEWER */
+function visualizarPDF(id){
+  var sims=lsLoad();
+  var d=sims.find(function(s){return s.id===id;});
+  if(!d)return;
+  viewSim=d;
+  document.getElementById('pdfTitle').textContent=id+(d.cli?' · '+d.cli:'');
+  renderPDFPreview(d);
+  document.getElementById('pdfOv').classList.add('open');
+}
+function fecharPDF(){document.getElementById('pdfOv').classList.remove('open');}
+
+function renderPDFPreview(d){
+  var idBlock='';
+  if(d.cli||d.res||d.adm||d.tab||d.dat){
+    var meta=[];
+    if(d.res)meta.push('Responsável: '+d.res);
+    if(d.adm)meta.push('Adm: '+d.adm);
+    if(d.tab)meta.push('Tabela: '+d.tab);
+    if(d.dat)meta.push('Data: '+fdate(d.dat));
+    idBlock='<div class="pdf-id-block">'
+      +(d.cli?'<div class="pdf-id-name">'+d.cli+'</div>':'')
+      +(meta.length?'<div class="pdf-id-meta">'+meta.join('  ·  ')+'</div>':'')
+      +'</div>';
+  }
+  var parcelasBlock='';
+  if(d.pp>0){
+    parcelasBlock='<div class="pdf-grid2">'
+      +'<div class="pdf-box hl"><div class="pdf-box-label">Primeira Parcela</div><div class="pdf-box-val cy">'+fmt(d.pp)+'</div></div>'
+      +'<div class="pdf-box hl"><div class="pdf-box-label">Demais Parcelas</div><div class="pdf-box-val big">'+fmt(d.vp)+'</div></div>'
+      +'</div>';
+  }else{
+    parcelasBlock='<div class="pdf-box hl" style="margin-bottom:.9rem"><div class="pdf-box-label">Valor das Parcelas</div><div class="pdf-box-val big">'+fmt(d.vp)+'</div></div>';
+  }
+  var lancesBlock='';
+  if(d.le>0||d.lr>0){
+    lancesBlock='<div class="pdf-sec-title">Lances</div>'
+      +(d.le>0?'<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid #e2e8f0;font-size:.8rem"><span style="color:var(--mu);font-family:var(--f)">Lance Embutido</span><span style="font-family:var(--f);font-weight:600;color:var(--cy)">'+fmt(d.le)+'</span></div>':'')
+      +(d.lr>0?'<div style="display:flex;justify-content:space-between;padding:.4rem 0;font-size:.8rem"><span style="color:var(--mu);font-family:var(--f)">Recursos Próprios</span><span style="font-family:var(--f);font-weight:600;color:var(--gr)">'+fmt(d.lr)+'</span></div>':'');
+  }
+  var entradaBlock='';
+  if(d.ve>0){
+    entradaBlock='<div class="pdf-sec-title" style="margin-top:.9rem">Entrada</div><div class="pdf-grid2">'
+      +'<div class="pdf-box"><div class="pdf-box-label">Valor da Entrada</div><div class="pdf-box-val">'+fmt(d.ve)+'</div></div>'
+      +'<div class="pdf-box"><div class="pdf-box-label">Saldo Devedor</div><div class="pdf-box-val am">'+fmt(d.sd)+'</div></div>'
+      +'</div>';
+  }
+  document.getElementById('pdfContent').innerHTML='<div class="pdf-preview">'
+    +'<div class="pdf-pre-header">'
+    +'<div><div class="pdf-pre-h1">SIMULAÇÃO</div><div class="pdf-pre-sub">Documento de Simulação</div></div>'
+    +'<div class="pdf-pre-id">'+d.id+'<br>v4.0</div>'
+    +'</div>'
+    +'<div class="pdf-tipo-tag">'+tlbl(d.tipo)+'</div>'
+    +idBlock
+    +'<div class="pdf-sec-title">Crédito</div>'
+    +'<div class="pdf-grid2">'
+    +'<div class="pdf-box"><div class="pdf-box-label">Crédito Bruto</div><div class="pdf-box-val">'+fmt(d.cb)+'</div></div>'
+    +'<div class="pdf-box hg"><div class="pdf-box-label">Crédito Líquido</div><div class="pdf-box-val gr">'+fmt(d.cl)+'</div></div>'
+    +'</div>'
+    +'<div class="pdf-sec-title">Condições</div>'
+    +'<div class="pdf-grid3">'
+    +'<div class="pdf-box"><div class="pdf-box-label">Taxa de Adm.</div><div class="pdf-box-val cy">'+d.ta.toFixed(1)+'%</div></div>'
+    +'<div class="pdf-box"><div class="pdf-box-label">Fundo Reserva</div><div class="pdf-box-val cy">'+d.fr.toFixed(1)+'%</div></div>'
+    +'<div class="pdf-box"><div class="pdf-box-label">Parcelas</div><div class="pdf-box-val cy">'+d.np+'x</div></div>'
+    +'</div>'
+    +parcelasBlock
+    +lancesBlock
+    +entradaBlock
+    +'<div class="pdf-disclaimer">Valores estimados, sujeitos à aprovação da administradora. Reajuste anual conforme contrato (INCC/IPCA). Contemplação não garantida por prazo específico. Esta simulação não gera compromisso contratual.</div>'
+    +'</div>';
+}
+
+/* PDF DOWNLOAD */
+function gerarPDF(d){
+  var J=window.jspdf&&window.jspdf.jsPDF;
+  if(!d||!J){alert('Erro ao gerar PDF.');return;}
+  var doc=new J({orientation:'portrait',unit:'mm',format:'a4'});
+  var W=210,M=18,CW=W-M*2;
+  doc.setFillColor(15,23,42);doc.rect(0,0,W,28,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(255,255,255);
+  doc.text('SIMULACAO',M,12);
+  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(150,180,200);
+  doc.text('Documento de Simulacao',M,19);
+  doc.setTextColor(100,140,160);doc.text(d.id,W-M,12,{align:'right'});doc.text('v4.0',W-M,19,{align:'right'});
+  var y=36;
+  doc.setFillColor(0,102,204);doc.roundedRect(M,y-5,30,7,2,2,'F');
+  doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(255,255,255);
+  doc.text(tlbl(d.tipo).toUpperCase(),M+2,y-0.5);
+  if(d.cli||d.res||d.adm||d.tab||d.dat){
+    y+=10;
+    var h=d.cli?22:14;
+    doc.setFillColor(245,247,250);doc.roundedRect(M,y,CW,h,2,2,'F');
+    if(d.cli){doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(15,23,42);doc.text(d.cli,M+4,y+7);}
+    var meta2=[];
+    if(d.res)meta2.push('Resp: '+d.res);
+    if(d.adm)meta2.push('Adm: '+d.adm);
+    if(d.tab)meta2.push('Tab: '+d.tab);
+    if(d.dat)meta2.push('Data: '+fdate(d.dat));
+    if(meta2.length){doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(100,116,139);doc.text(meta2.join('  |  '),M+4,d.cli?y+14:y+7);}
+    y+=h+6;
+  }else y+=10;
+  function st(t,yy){doc.setFont('helvetica','bold');doc.setFontSize(7);doc.setTextColor(100,116,139);doc.text(t.toUpperCase(),M,yy);doc.setDrawColor(200,210,220);doc.setLineWidth(0.2);doc.line(M+24,yy-1,W-M,yy-1);return yy+6;}
+  function bx(lb,vl,x,yy,w,co){doc.setFillColor(245,247,250);doc.roundedRect(x,yy,w,16,2,2,'F');doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(100,116,139);doc.text(lb.toUpperCase(),x+4,yy+5.5);doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor.apply(doc,co?[co[0],co[1],co[2]]:[15,23,42]);doc.text(vl,x+4,yy+13);}
+  y=st('Credito',y);var hw=(CW-4)/2;
+  bx('Credito Bruto',fmt(d.cb),M,y,hw);bx('Credito Liquido',fmt(d.cl),M+hw+4,y,hw,[22,163,74]);y+=22;
+  y=st('Condicoes',y);var tw=(CW-8)/3;
+  bx('Taxa Adm',d.ta.toFixed(1)+'%',M,y,tw,[0,102,204]);bx('Fundo Reserva',d.fr.toFixed(1)+'%',M+tw+4,y,tw,[0,102,204]);bx('Parcelas',d.np+'x',M+2*(tw+4),y,tw,[0,102,204]);y+=22;
+  if(d.pp>0){var hw2=(CW-4)/2;bx('Primeira Parcela',fmt(d.pp),M,y,hw2,[0,102,204]);bx('Demais Parcelas',fmt(d.vp),M+hw2+4,y,hw2);}
+  else{doc.setFillColor(0,70,140);doc.roundedRect(M,y,CW,18,2,2,'F');doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(180,220,255);doc.text('VALOR DAS PARCELAS',M+4,y+6);doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(255,255,255);doc.text(fmt(d.vp),M+4,y+15);}
+  y+=25;
+  if(d.le>0||d.lr>0){
+    y=st('Lances',y);
+    if(d.le>0){doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(100,116,139);doc.text('Lance Embutido',M,y+4);doc.setFont('helvetica','bold');doc.setTextColor(0,102,204);doc.text(fmt(d.le),W-M,y+4,{align:'right'});doc.setDrawColor(220,228,240);doc.setLineWidth(0.2);doc.line(M,y+8,W-M,y+8);y+=12;}
+    if(d.lr>0){doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(100,116,139);doc.text('Recursos Proprios',M,y+4);doc.setFont('helvetica','bold');doc.setTextColor(22,163,74);doc.text(fmt(d.lr),W-M,y+4,{align:'right'});y+=12;}
+    y+=4;
+  }
+  if(d.ve>0){y=st('Entrada',y);var hw3=(CW-4)/2;bx('Valor da Entrada',fmt(d.ve),M,y,hw3);bx('Saldo Devedor',fmt(d.sd),M+hw3+4,y,hw3,[180,83,9]);y+=24;}
+  doc.setFillColor(255,248,230);doc.roundedRect(M,y,CW,14,2,2,'F');doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(180,83,9);
+  doc.text('Valores estimados, sujeitos a aprovacao da administradora. Reajuste anual (INCC/IPCA).',M+4,y+5.5);
+  doc.text('Contemplacao nao garantida. Simulacao sem compromisso contratual.',M+4,y+10.5);
+  doc.setFillColor(245,247,250);doc.rect(0,285,W,12,'F');
+  doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(100,116,139);
+  doc.text('Simulacao',M,292);
+  doc.text('Gerado em '+new Date().toLocaleString('pt-BR'),W-M,292,{align:'right'});
+  doc.save(d.id+'_simulacao.pdf');
+}
+
+/* Saldo Devedor toggle */
+var sdVisible = true;
+function toggleSaldoDevedor(){
+  sdVisible = !sdVisible;
+  var box = document.getElementById('rSDBox');
+  var hidden = document.getElementById('rSDHidden');
+  var btn = document.getElementById('btnToggleSD');
+  if(box) box.style.display = sdVisible ? 'block' : 'none';
+  if(hidden) hidden.style.display = sdVisible ? 'none' : 'block';
+  if(btn) btn.textContent = sdVisible ? 'ocultar' : 'mostrar';
+}
+
+// INIT
+document.addEventListener('DOMContentLoaded',function(){
+  document.querySelectorAll('.tipo-btn').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.tipo-btn').forEach(function(x){x.classList.remove('on');});
+      this.classList.add('on');tipoSel=this.getAttribute('data-tipo');
+    });
+  });
+  document.getElementById('btnHist').addEventListener('click',function(){ir('pHist');});
+  document.getElementById('btnBack').addEventListener('click',function(){ir('pMain');});
+  document.getElementById('btnHistBack').addEventListener('click',function(){ir('pMain');});
+  document.getElementById('btnRun').addEventListener('click',function(){calcular();});
+
+  document.getElementById('btnSave').addEventListener('click',function(){abrirModal();});
+  document.getElementById('btnPDF').addEventListener('click',function(){if(sim)gerarPDF(sim);});
+  document.getElementById('btnMCanc').addEventListener('click',function(){fecharModal();});
+  document.getElementById('btnMConf').addEventListener('click',function(){confirmarSalvar();});
+  document.getElementById('btnNewFolder').addEventListener('click',function(){criarNovaPasta();});
+  document.getElementById('ov').addEventListener('click',function(e){if(e.target===this)fecharModal();});
+  document.getElementById('pdfClose').addEventListener('click',function(){fecharPDF();});
+  document.getElementById('pdfOv').addEventListener('click',function(e){if(e.target===this)fecharPDF();});
+  document.getElementById('pdfDlBtn').addEventListener('click',function(){if(viewSim)gerarPDF(viewSim);});
+  document.getElementById('mDat').value=new Date().toISOString().split('T')[0];
+
+  // Cloud modal
+  document.getElementById('btnSetupCloud').addEventListener('click',function(){
+    var ov = document.getElementById('ovCloud');
+    // Show connected or setup step
+    if(sbUrl && sbKey){
+      document.getElementById('cloudSetupStep1').style.display='none';
+      document.getElementById('cloudSetupConnected').style.display='block';
+      document.getElementById('connectedUrl').textContent=sbUrl.replace('https://','').split('.')[0]+'... · conectado';
+    } else {
+      document.getElementById('cloudSetupStep1').style.display='block';
+      document.getElementById('cloudSetupConnected').style.display='none';
+      document.getElementById('sbUrl').value=sbUrl||'';
+      document.getElementById('sbKey').value=sbKey||'';
+      document.getElementById('cloudStatus').textContent='';
+    }
+    ov.classList.add('open');
+  });
+  document.getElementById('btnCloudCancel').addEventListener('click',function(){
+    document.getElementById('ovCloud').classList.remove('open');
+  });
+  document.getElementById('btnCloudDone').addEventListener('click',function(){
+    document.getElementById('ovCloud').classList.remove('open');
+  });
+  document.getElementById('btnCloudDisconnect').addEventListener('click',function(){
+    sbUrl=''; sbKey=''; cloudConnected=false;
+    localStorage.removeItem(SB_URL_KEY); localStorage.removeItem(SB_KEY_KEY);
+    setSyncStatus(false,'Desconectado · dados salvos localmente',false);
+    document.getElementById('cloudSetupStep1').style.display='block';
+    document.getElementById('cloudSetupConnected').style.display='none';
+    document.getElementById('sbUrl').value='';
+    document.getElementById('sbKey').value='';
+  });
+  document.getElementById('ovCloud').addEventListener('click',function(e){
+    if(e.target===this) document.getElementById('ovCloud').classList.remove('open');
+  });
+  document.getElementById('btnCloudConnect').addEventListener('click',async function(){
+    var url = document.getElementById('sbUrl').value.trim();
+    var key = document.getElementById('sbKey').value.trim();
+    if(!url||!key){
+      document.getElementById('cloudStatus').textContent='Preencha a URL e a chave.';
+      document.getElementById('cloudStatus').style.color='#dc2626';
+      return;
+    }
+    var ok = await connectSupabase(url, key);
+    if(ok){
+      setTimeout(function(){
+        document.getElementById('cloudSetupStep1').style.display='none';
+        document.getElementById('cloudSetupConnected').style.display='block';
+        document.getElementById('connectedUrl').textContent=url.replace('https://','').split('.')[0]+'... · conectado';
+      },800);
+    }
+  });
+  // Export/import
+  function triggerExport(){exportarDados();}
+  document.getElementById('btnExport').addEventListener('click',triggerExport);
+  document.getElementById('btnImport').addEventListener('click',function(){document.getElementById('importInput').click();});
+  document.getElementById('btnExport2').addEventListener('click',triggerExport);
+  document.getElementById('btnImport2').addEventListener('click',function(){
+    document.getElementById('importInput').click();
+    document.getElementById('ovCloud').classList.remove('open');
+  });
+  document.getElementById('importInput').addEventListener('change',function(e){
+    if(e.target.files[0]) importarDados(e.target.files[0]);
+    e.target.value='';
+  });
+
+  // Init sync status on load
+  if(sbUrl && sbKey){
+    setSyncStatus(true,'Supabase conectado · carregando dados...',true);
+    sbLoadAll().then(function(remote){
+      if(remote!==null){
+        var local=lsLoad(), localIds=local.map(function(s){return s.id;});
+        var merged=local.concat(remote.filter(function(s){return!localIds.includes(s.id);}));
+        localStorage.setItem(SKEY, JSON.stringify(merged));
+        setSyncStatus(true,'Supabase · '+merged.length+' simulações',false);
+      } else {
+        setSyncStatus(true,'Supabase · erro ao carregar, usando dados locais',false);
+      }
+    });
+  } else {
+    setSyncStatus(false,'Dados locais · configure a nuvem para compartilhar',false);
+  }
+});
+</script>
+</body>
+</html>
