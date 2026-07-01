@@ -297,17 +297,22 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="g2">
       <div class="fg"><div class="fl">Crédito Bruto (R$)</div><input type="number" id="fCB" class="fi" placeholder="50000"></div>
       <div class="fg"><div class="fl">Nº de Parcelas</div><input type="number" id="fNP" class="fi" placeholder="60"></div>
-      <div class="fg"><div class="fl">Taxa de Adm. (%)</div><input type="number" id="fTA" class="fi" step="0.1" placeholder="15"></div>
-      <div class="fg"><div class="fl">Fundo de Reserva (%)</div><input type="number" id="fFR" class="fi" step="0.1" placeholder="0"></div>
     </div>
     <div class="dsep">
       <div class="dlbl">opcionais</div>
       <div class="g2">
-        <div class="fg"><div class="fl">Parcelas (R$)</div><input type="number" id="fPR" class="fi" step="0.01" placeholder="0"><span class="fh">↳ substitui cálculo auto</span></div>
-        <div class="fg"><div class="fl">1ª Parcela (R$)</div><input type="number" id="fPP" class="fi" step="0.01" placeholder="0"><span class="fh">↳ se diferente das demais</span></div>
+        <div class="fg"><div class="fl">Taxa de Adm. (%)</div><input type="number" id="fTA" class="fi" step="0.1" placeholder="15"></div>
+        <div class="fg"><div class="fl">Fundo de Reserva (%)</div><input type="number" id="fFR" class="fi" step="0.1" placeholder="0"></div>
       </div>
       <div class="g2">
+        <div class="fg"><div class="fl">Parcelas (R$)</div><input type="number" id="fPR" class="fi" step="0.01" placeholder="0"><span class="fh">↳ substitui cálculo auto</span></div>
+        <div class="fg"><div class="fl">1ª a 12ª Parcelas (R$)</div><input type="number" id="fPP" class="fi" step="0.01" placeholder="0"><span class="fh">↳ se diferente das demais</span></div>
+      </div>
+      <div class="g2">
+        <div class="fg"><div class="fl">1ª Parcela (R$)</div><input type="number" id="fPP1" class="fi" step="0.01" placeholder="0"><span class="fh">↳ se diferente das demais</span></div>
         <div class="fg"><div class="fl">Valor da Entrada (R$)</div><input type="number" id="fVE" class="fi" step="0.01" placeholder="0"></div>
+      </div>
+      <div class="g2">
         <div class="fg">
           <div class="fl">Saldo Devedor (R$)</div>
           <input type="number" id="fSD" class="fi" step="0.01" placeholder="opcional">
@@ -377,10 +382,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div class="rb rc"><div class="rl">Parcelas</div><div class="rv cy" id="rNP"></div></div>
   </div>
   <div id="bPU" style="margin-bottom:.45rem"><div class="rb rm"><div class="rl">Valor das Parcelas</div><div class="rv big" id="rVP"></div></div></div>
-  <div id="bPD" class="rg2" style="display:none;margin-bottom:.45rem">
-    <div class="rb rc"><div class="rl">Primeira Parcela</div><div class="rv cy" id="rPP"></div></div>
-    <div class="rb rm"><div class="rl">Demais Parcelas</div><div class="rv big" id="rDP"></div></div>
-  </div>
+  <div id="bPD" style="margin-bottom:.45rem"></div>
   <div id="rLances" class="panel" style="display:none">
     <div class="ptit">lances</div>
     <div id="lES" style="display:none"><div class="lrow"><div class="ll"><div class="pip pc"></div>Lance Embutido</div><div class="lv" id="rLE"></div></div></div>
@@ -741,6 +743,7 @@ function calcular(){
   var fr=parseFloat(document.getElementById('fFR').value)||0;
   var pr=parseFloat(document.getElementById('fPR').value)||0;
   var pp=parseFloat(document.getElementById('fPP').value)||0;
+  var pp1=parseFloat(document.getElementById('fPP1').value)||0;
   var ve=parseFloat(document.getElementById('fVE').value)||0;
   var fSDval=parseFloat(document.getElementById('fSD').value)||0;
   var le=parseFloat(document.getElementById('fLE').value)||0;
@@ -753,7 +756,7 @@ function calcular(){
   var vp=pr>0?pr:(cb*(1+(ta/100)+(fr/100)))/np;
   var id='SIM-'+(Math.floor(Math.random()*900000)+100000);
   var sdVal=fSDval>0?fSDval:0;
-  sim={id:id,tipo:tipoSel,cli:cli,res:res,adm:'',tab:'',dat:dat,folder:'Geral',cb:cb,cl:cl,np:np,ta:ta,fr:fr,vp:vp,pp:pp,ve:ve,sd:sdVal,le:le,lr:lr,savedAt:null};
+  sim={id:id,tipo:tipoSel,cli:cli,res:res,adm:'',tab:'',dat:dat,folder:'Geral',cb:cb,cl:cl,np:np,ta:ta,fr:fr,vp:vp,pp:pp,pp1:pp1,ve:ve,sd:sdVal,le:le,lr:lr,savedAt:null};
   mostrar(sim);
   document.getElementById('rId').textContent=id;
   var sb=document.getElementById('btnSave');
@@ -778,8 +781,21 @@ function mostrar(d){
     if(d.dat){db.style.display='block';document.getElementById('rDatVal').textContent=fdate(d.dat);}else db.style.display='none';
   }else cbox.style.display='none';
   var bu=document.getElementById('bPU'),bd=document.getElementById('bPD');
-  if(d.pp>0){bd.style.display='grid';bu.style.display='none';document.getElementById('rPP').textContent=fmt(d.pp);document.getElementById('rDP').textContent=fmt(d.vp);}
-  else{bd.style.display='none';bu.style.display='block';document.getElementById('rVP').textContent=fmt(d.vp);}
+  var boxes=[];
+  if(d.pp1>0)boxes.push({l:'1ª Parcela',v:d.pp1});
+  if(d.pp>0)boxes.push({l:'1ª a 12ª Parcelas',v:d.pp});
+  if(boxes.length>0){
+    bu.style.display='none';bd.style.display='block';
+    boxes.push({l:'Demais Parcelas',v:d.vp});
+    var gcls=boxes.length===3?'rg3':'rg2';
+    var html='<div class="'+gcls+'">'+boxes.map(function(b,i){
+      var last=i===boxes.length-1;
+      return '<div class="rb '+(last?'rm':'rc')+'"><div class="rl">'+b.l+'</div><div class="rv '+(last?'big':'cy')+'">'+fmt(b.v)+'</div></div>';
+    }).join('')+'</div>';
+    bd.innerHTML=html;
+  }else{
+    bd.style.display='none';bu.style.display='block';document.getElementById('rVP').textContent=fmt(d.vp);
+  }
   document.getElementById('rLances').style.display=(d.le>0||d.lr>0)?'block':'none';
   var es=document.getElementById('lES'),rs=document.getElementById('lRS');
   if(d.le>0){es.style.display='block';document.getElementById('rLE').textContent=fmt(d.le);}else es.style.display='none';
@@ -940,11 +956,18 @@ function renderPDFPreview(d){
       +(meta.length?'<div class="pdf-id-meta">'+meta.join('  ·  ')+'</div>':'')
       +'</div>';
   }
+  var pBoxes=[];
+  if(d.pp1>0)pBoxes.push({l:'1ª Parcela',v:d.pp1});
+  if(d.pp>0)pBoxes.push({l:'1ª a 12ª Parcelas',v:d.pp});
   var parcelasBlock='';
-  if(d.pp>0){
-    parcelasBlock='<div class="pdf-grid2">'
-      +'<div class="pdf-box hl"><div class="pdf-box-label">Primeira Parcela</div><div class="pdf-box-val cy">'+fmt(d.pp)+'</div></div>'
-      +'<div class="pdf-box hl"><div class="pdf-box-label">Demais Parcelas</div><div class="pdf-box-val big">'+fmt(d.vp)+'</div></div>'
+  if(pBoxes.length>0){
+    pBoxes.push({l:'Demais Parcelas',v:d.vp});
+    var pgcls=pBoxes.length===3?'pdf-grid3':'pdf-grid2';
+    parcelasBlock='<div class="'+pgcls+'">'
+      +pBoxes.map(function(b,i){
+        var last=i===pBoxes.length-1;
+        return '<div class="pdf-box hl"><div class="pdf-box-label">'+b.l+'</div><div class="pdf-box-val '+(last?'big':'cy')+'">'+fmt(b.v)+'</div></div>';
+      }).join('')
       +'</div>';
   }else{
     parcelasBlock='<div class="pdf-box hl" style="margin-bottom:.9rem"><div class="pdf-box-label">Valor das Parcelas</div><div class="pdf-box-val big">'+fmt(d.vp)+'</div></div>';
@@ -1022,7 +1045,14 @@ function gerarPDF(d){
   bx('Credito Bruto',fmt(d.cb),M,y,hw);bx('Credito Liquido',fmt(d.cl),M+hw+4,y,hw,[22,163,74]);y+=22;
   y=st('Condicoes',y);var tw=(CW-8)/3;
   bx('Taxa Adm',d.ta.toFixed(1)+'%',M,y,tw,[0,102,204]);bx('Fundo Reserva',d.fr.toFixed(1)+'%',M+tw+4,y,tw,[0,102,204]);bx('Parcelas',d.np+'x',M+2*(tw+4),y,tw,[0,102,204]);y+=22;
-  if(d.pp>0){var hw2=(CW-4)/2;bx('Primeira Parcela',fmt(d.pp),M,y,hw2,[0,102,204]);bx('Demais Parcelas',fmt(d.vp),M+hw2+4,y,hw2);}
+  var jBoxes=[];
+  if(d.pp1>0)jBoxes.push(['1ª Parcela',fmt(d.pp1)]);
+  if(d.pp>0)jBoxes.push(['1ª a 12ª Parcelas',fmt(d.pp)]);
+  if(jBoxes.length>0){
+    jBoxes.push(['Demais Parcelas',fmt(d.vp)]);
+    var jw=(CW-4*(jBoxes.length-1))/jBoxes.length;
+    jBoxes.forEach(function(b,i){bx(b[0],b[1],M+i*(jw+4),y,jw,[0,102,204]);});
+  }
   else{doc.setFillColor(0,70,140);doc.roundedRect(M,y,CW,18,2,2,'F');doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(180,220,255);doc.text('VALOR DAS PARCELAS',M+4,y+6);doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(255,255,255);doc.text(fmt(d.vp),M+4,y+15);}
   y+=25;
   if(d.le>0||d.lr>0){
