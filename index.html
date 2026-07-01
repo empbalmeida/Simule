@@ -4,20 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Simulação</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
   --bg:#f0f4f8;--s1:#ffffff;--s2:#f5f7fa;--s3:#edf1f5;
-  --cy:#0066cc;--cy2:#004fa3;--cydim:rgba(0,102,204,.08);--cyglow:rgba(0,102,204,.04);
+  --cy:#2952a3;--cy2:#1d3f7a;--cydim:rgba(41,82,163,.08);--cyglow:rgba(41,82,163,.04);
   --gr:#16a34a;--grdim:rgba(22,163,74,.07);
   --am:#b45309;--amdim:rgba(180,83,9,.07);
   --re:#dc2626;
   --tx:#0f172a;--tx2:#1e293b;--mu:#64748b;--mu2:#cbd5e1;
-  --bd:rgba(0,102,204,.12);--bd2:rgba(0,102,204,.25);
-  --gl:rgba(0,102,204,.04);--pt:rgba(0,102,204,.3);
-  --f:'Inter',sans-serif;--m:'JetBrains Mono',monospace;
+  --bd:rgba(41,82,163,.12);--bd2:rgba(41,82,163,.25);
+  --gl:rgba(41,82,163,.04);--pt:rgba(41,82,163,.3);
+  --f:'Nunito',sans-serif;--m:'Nunito',sans-serif;
 }
 body{font-family:var(--f);background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;font-size:16px;-webkit-font-smoothing:antialiased}
 body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--gl) 1px,transparent 1px),linear-gradient(90deg,var(--gl) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0}
@@ -53,15 +53,15 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .ptit::after{content:'';flex:1;height:1px;background:var(--bd)}
 
 .trow{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem}
-.tipo-btn{display:flex;flex-direction:column;align-items:center;gap:8px;padding:1rem .5rem;border:1.5px solid #e5e7eb;border-radius:10px;background:white;color:#6b7280;cursor:pointer;font-family:var(--f);font-size:.875rem;font-weight:500;transition:all .2s}
+.tipo-btn{display:flex;flex-direction:column;align-items:center;gap:8px;padding:1rem .5rem;border:1.5px solid #e5e7eb;border-radius:12px;background:white;color:#6b7280;cursor:pointer;font-family:var(--f);font-size:.875rem;font-weight:500;transition:all .2s}
 .tipo-btn svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8}
 .tipo-btn:hover{border-color:#93c5fd;color:var(--tx)}
-.tipo-btn.on{border-color:#3b82f6;color:#2563eb;background:#eff6ff;border-width:2px}
+.tipo-btn.on{border-color:#4a72c0;color:#2952a3;background:#eaf1fc;border-width:2px}
 
 .fg{display:flex;flex-direction:column;gap:5px}
 .fl{font-size:.875rem;font-weight:600;letter-spacing:0;text-transform:none;color:var(--tx2);font-family:var(--f)}
-.fi{background:white;border:1px solid #d1d5db;border-radius:8px;padding:.7rem 1rem;font-size:.95rem;font-family:var(--f);color:var(--tx);width:100%;transition:all .18s}
-.fi:focus{outline:none;border-color:var(--cy);background:white;box-shadow:0 0 0 3px rgba(0,102,204,.12)}
+.fi{background:white;border:1px solid #d1d5db;border-radius:10px;padding:.7rem 1rem;font-size:.95rem;font-family:var(--f);color:var(--tx);width:100%;transition:all .18s}
+.fi:focus{outline:none;border-color:var(--cy);background:white;box-shadow:0 0 0 3px rgba(41,82,163,.12)}
 .fi::placeholder{color:#9ca3af;font-size:.92rem}
 .fh{font-size:.78rem;color:var(--mu);font-family:var(--f)}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem}
@@ -71,8 +71,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .dlbl{font-size:.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--am);font-family:var(--f);display:flex;align-items:center;gap:7px;margin-bottom:.75rem}
 .dlbl::after{content:'';flex:1;height:1px;background:var(--amdim)}
 
-.brun{width:100%;padding:.85rem;background:#2563eb;border:none;border-radius:10px;color:white;font-family:var(--f);font-size:1rem;font-weight:600;letter-spacing:0;cursor:pointer;transition:all .2s;margin-top:.35rem;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 2px 8px rgba(37,99,235,.3)}
-.brun:hover{background:#1d4ed8;box-shadow:0 4px 14px rgba(37,99,235,.4);transform:translateY(-1px)}
+.brun{width:100%;padding:.85rem;background:#2952a3;border:none;border-radius:12px;color:white;font-family:var(--f);font-size:1rem;font-weight:700;letter-spacing:0;cursor:pointer;transition:all .2s;margin-top:.35rem;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 2px 8px rgba(41,82,163,.3)}
+.brun:hover{background:#1d3f7a;box-shadow:0 4px 14px rgba(41,82,163,.4);transform:translateY(-1px)}
 .brun:active{transform:scale(.99)}
 .brun svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2}
 
@@ -93,7 +93,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 
 .rg2{display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-bottom:.45rem}
 .rg3{display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem;margin-bottom:.45rem}
-.rb{background:var(--s1);border:1px solid var(--bd);border-radius:9px;padding:.78rem .88rem;position:relative;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.rb{background:var(--s1);border:1px solid var(--bd);border-radius:12px;padding:.78rem .88rem;position:relative;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)}
 .rb.rc{border-color:var(--bd2);background:var(--cydim)}
 .rb.rg{border-color:rgba(22,163,74,.2);background:var(--grdim)}
 .rb.ra{border-color:rgba(180,83,9,.2);background:var(--amdim)}
@@ -137,7 +137,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .mbt{display:grid;grid-template-columns:1fr 1fr;gap:.45rem;margin-top:.9rem}
 .mca{padding:.6rem;border:1px solid var(--bd);border-radius:7px;background:transparent;color:var(--mu);font-family:var(--f);font-size:.85rem;cursor:pointer;transition:all .18s}
 .mca:hover{border-color:var(--bd2);color:var(--tx)}
-.mco{padding:.6rem;border:none;border-radius:7px;background:var(--cy);color:white;font-family:var(--f);font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s;box-shadow:0 2px 6px rgba(0,102,204,.3)}
+.mco{padding:.6rem;border:none;border-radius:9px;background:var(--cy);color:white;font-family:var(--f);font-size:.78rem;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 2px 6px rgba(41,82,163,.3)}
 .mco:hover{background:var(--cy2)}
 
 /* FOLDER SELECT */
@@ -233,9 +233,9 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .setup-section{background:#f8fafc;border-radius:8px;padding:1rem;margin-bottom:.75rem;border:1px solid #e2e8f0}
 .setup-section-title{font-size:.7rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#64748b;font-family:var(--f);margin-bottom:.6rem}
 .setup-info{font-size:.78rem;color:#64748b;line-height:1.6;margin-bottom:.75rem}
-.setup-info a{color:#2563eb}
+.setup-info a{color:#2952a3}
 .setup-info code{background:#f1f5f9;padding:1px 5px;border-radius:3px;font-size:.76rem}
-.btn-setup-confirm{width:100%;padding:.65rem;border:none;border-radius:8px;background:#2563eb;color:white;font-family:var(--f);font-size:.88rem;font-weight:600;cursor:pointer;transition:all .2s;margin-top:.75rem}
+.btn-setup-confirm{width:100%;padding:.65rem;border:none;border-radius:10px;background:#2952a3;color:white;font-family:var(--f);font-size:.88rem;font-weight:700;cursor:pointer;transition:all .2s;margin-top:.75rem}
 .btn-setup-confirm:hover{background:#1d4ed8}
 .or-divider{display:flex;align-items:center;gap:.75rem;margin:.75rem 0;font-size:.72rem;color:#94a3b8;font-family:var(--f)}
 .or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:#e2e8f0}
@@ -388,6 +388,11 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
     <div id="lES" style="display:none"><div class="lrow"><div class="ll"><div class="pip pc"></div>Lance Embutido</div><div class="lv" id="rLE"></div></div></div>
     <div id="lRS" style="display:none"><div class="lrow"><div class="ll"><div class="pip pg"></div>Recursos Próprios</div><div class="lv" id="rLR"></div></div></div>
   </div>
+  <div id="rLanceInfo" class="ibl" style="display:none;margin-bottom:.5rem"><div class="ibt">como funciona o lance</div><div class="ig3">
+    <div class="ii"><strong>Lance Embutido</strong><p>Descontado do crédito bruto, reduz o crédito líquido.</p></div>
+    <div class="ii"><strong>Recursos Próprios</strong><p>Pago com recurso externo, sem afetar o crédito.</p></div>
+    <div class="ii"><strong>Contemplação</strong><p>Lance maior aumenta as chances de contemplação antecipada.</p></div>
+  </div></div>
   <div id="rEntrada" style="display:none">
     <div class="rg2">
       <div class="rb"><div class="rl">Valor da Entrada</div><div class="rv" id="rVE"></div></div>
@@ -797,6 +802,7 @@ function mostrar(d){
     bd.style.display='none';bu.style.display='block';document.getElementById('rVP').textContent=fmt(d.vp);
   }
   document.getElementById('rLances').style.display=(d.le>0||d.lr>0)?'block':'none';
+  document.getElementById('rLanceInfo').style.display=(d.le>0||d.lr>0)?'block':'none';
   var es=document.getElementById('lES'),rs=document.getElementById('lRS');
   if(d.le>0){es.style.display='block';document.getElementById('rLE').textContent=fmt(d.le);}else es.style.display='none';
   if(d.lr>0){rs.style.display='block';document.getElementById('rLR').textContent=fmt(d.lr);}else rs.style.display='none';
