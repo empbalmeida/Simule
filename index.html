@@ -962,6 +962,12 @@ function renderPDFPreview(d){
       +(meta.length?'<div class="pdf-id-meta">'+meta.join('  ·  ')+'</div>':'')
       +'</div>';
   }
+  var condBoxes=[];
+  if(d.ta>0)condBoxes.push('<div class="pdf-box"><div class="pdf-box-label">Taxa de Adm.</div><div class="pdf-box-val cy">'+d.ta.toFixed(1)+'%</div></div>');
+  if(d.fr>0)condBoxes.push('<div class="pdf-box"><div class="pdf-box-label">Fundo Reserva</div><div class="pdf-box-val cy">'+d.fr.toFixed(1)+'%</div></div>');
+  condBoxes.push('<div class="pdf-box"><div class="pdf-box-label">Parcelas</div><div class="pdf-box-val cy">'+d.np+'x</div></div>');
+  var condGridCls=condBoxes.length===3?'pdf-grid3':(condBoxes.length===2?'pdf-grid2':'');
+  var condicoesBlock=condGridCls?('<div class="'+condGridCls+'">'+condBoxes.join('')+'</div>'):condBoxes[0];
   var pBoxes=[];
   if(d.pp1>0)pBoxes.push({l:'1ª Parcela',v:d.pp1});
   if(d.pp>0)pBoxes.push({l:'1ª a 12ª Parcelas',v:d.pp});
@@ -1004,11 +1010,7 @@ function renderPDFPreview(d){
     +'<div class="pdf-box hg"><div class="pdf-box-label">Crédito Líquido</div><div class="pdf-box-val gr">'+fmt(d.cl)+'</div></div>'
     +'</div>'
     +'<div class="pdf-sec-title">Condições</div>'
-    +'<div class="pdf-grid3">'
-    +'<div class="pdf-box"><div class="pdf-box-label">Taxa de Adm.</div><div class="pdf-box-val cy">'+d.ta.toFixed(1)+'%</div></div>'
-    +'<div class="pdf-box"><div class="pdf-box-label">Fundo Reserva</div><div class="pdf-box-val cy">'+d.fr.toFixed(1)+'%</div></div>'
-    +'<div class="pdf-box"><div class="pdf-box-label">Parcelas</div><div class="pdf-box-val cy">'+d.np+'x</div></div>'
-    +'</div>'
+    +condicoesBlock
     +parcelasBlock
     +lancesBlock
     +entradaBlock
@@ -1049,8 +1051,14 @@ function gerarPDF(d){
   function bx(lb,vl,x,yy,w,co){doc.setFillColor(245,247,250);doc.roundedRect(x,yy,w,16,2,2,'F');doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(100,116,139);doc.text(lb.toUpperCase(),x+4,yy+5.5);doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor.apply(doc,co?[co[0],co[1],co[2]]:[15,23,42]);doc.text(vl,x+4,yy+13);}
   y=st('Credito',y);var hw=(CW-4)/2;
   bx('Credito Bruto',fmt(d.cb),M,y,hw);bx('Credito Liquido',fmt(d.cl),M+hw+4,y,hw,[22,163,74]);y+=22;
-  y=st('Condicoes',y);var tw=(CW-8)/3;
-  bx('Taxa Adm',d.ta.toFixed(1)+'%',M,y,tw,[0,102,204]);bx('Fundo Reserva',d.fr.toFixed(1)+'%',M+tw+4,y,tw,[0,102,204]);bx('Parcelas',d.np+'x',M+2*(tw+4),y,tw,[0,102,204]);y+=22;
+  y=st('Condicoes',y);
+  var condJ=[];
+  if(d.ta>0)condJ.push(['Taxa Adm',d.ta.toFixed(1)+'%']);
+  if(d.fr>0)condJ.push(['Fundo Reserva',d.fr.toFixed(1)+'%']);
+  condJ.push(['Parcelas',d.np+'x']);
+  var cw=(CW-4*(condJ.length-1))/condJ.length;
+  condJ.forEach(function(b,i){bx(b[0],b[1],M+i*(cw+4),y,cw,[41,82,163]);});
+  y+=22;
   var jBoxes=[];
   if(d.pp1>0)jBoxes.push(['1ª Parcela',fmt(d.pp1)]);
   if(d.pp>0)jBoxes.push(['1ª a 12ª Parcelas',fmt(d.pp)]);
